@@ -13,16 +13,50 @@ Planned components: pubd-idp · pub-identity-client · pub-vault · pub-attest (
 
 ## In 30 seconds
 
-_A runnable example goes here the day the first crate lands._
+```rust
+use pub_identity_client::{AuthenticationRequest, CodeVerifier, Nonce, ProviderMetadata, State, TokenResponse, well_known_url};
+
+// fetch well_known_url(issuer) yourself, then:
+let provider = ProviderMetadata::parse(issuer, &document_bytes)?;
+let request = AuthenticationRequest::new(
+    &provider, "app-1", "https://app.example.org/cb",
+    CodeVerifier::from_octets(&random32)?, State::from_octets(&random16a), Nonce::from_octets(&random16b),
+)?.scope("profile");
+let url = request.url();            // send the user agent here
+let pending = request.pending();    // keep it (it serializes) until the user comes back
+
+let code = pending.parse_response(&redirect_query)?;          // state, iss and error checked
+let token_request = pending.token_request(&code);             // POST body() to endpoint()
+let response = TokenResponse::parse(&token_response_bytes)?;  // Bearer, id_token present
+let claims = response.id_token().validate_claims(&pending.expectations(now))?; // rules 2–13
+println!("signed in as {}", claims.subject());
+```
 
 ## What it does
 
+- `pub-identity-client`: the OpenID Connect client core, the client side of the authorization code
+  flow with PKCE `S256` and nothing else. Discovery (the well-known URL, the configuration
+  document validated for the issuer), the authentication request URL, the authorization response
+  checks (state, RFC 9207 `iss`, the provider's error), the token request body, the token response,
+  the ID token parsed with its signing input and signature exposed for a verifier, and the claim
+  validation of Core §3.1.3.7 with the rule named on every rejection. No HTTP, no clock, no random
+  source: the caller supplies bytes, octets and the time, so an application, a service and a WASM
+  plugin use the same core (ADR-0001). Dependencies: serde, serde_json.
+
 ## What it does not do (yet)
+
+- Verify the ID token's signature: the JWS/JWK verifier over the provider's JWK Set is the next
+  crate; until then a client trusts the TLS connection to the token endpoint (Core §3.1.3.7 rule 6).
+- Authenticate a confidential client, refresh a token, call the UserInfo endpoint, push an
+  authorization request: later, with the shape noted in ADR-0001.
+- Be the provider: `pubd-idp` needs its own ADR first (the catalog says Kanidm-derived; Kanidm is
+  MPL-2.0).
 
 ## Status
 
 | Ledger entry | Readiness | Next |
 |---|---|---|
+| identity (`pub-identity-client`) | seed: discovery, the authorization code flow with PKCE, ID token claim validation | the JWS/JWK verifier; client authentication; the refresh grant |
 
 ## How it fits the suite
 

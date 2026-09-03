@@ -1,0 +1,18 @@
+[package]
+name = "pub-identity-client"
+description = "The OpenID Connect client core of identity: discovery, the authorization request with PKCE, the token response and ID token claim validation, without transport"
+readme = "README.md"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+authors.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"

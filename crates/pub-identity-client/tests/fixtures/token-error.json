@@ -1,0 +1,5 @@
+{
+  "error": "invalid_grant",
+  "error_description": "The authorization code has expired.",
+  "error_uri": "https://id.example.org/docs/errors#invalid_grant"
+}

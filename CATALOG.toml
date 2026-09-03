@@ -22,3 +22,13 @@ summary     = "IdP (Kanidm-derived), OIDC/passkeys client, account picker, secre
 # specs     = []
 # provides  = ["public:area/iface@1"]
 # requires  = []
+
+[[component]]
+crate     = "pub-identity-client"
+kind      = "lib"
+ledger    = "identity"
+readiness = "seed"
+effort    = 3
+specs     = ["openid-connect-core", "openid-connect-discovery", "rfc6749", "rfc7636"]
+provides  = []
+requires  = []
